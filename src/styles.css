@@ -1,0 +1,28 @@
+.App {
+  font-family: sans-serif;
+  margin: 10px;
+}
+
+.input-field {
+  max-width: 200px;
+}
+
+button {
+  margin: 10px 0;
+}
+
+.confirm-booking-button {
+  margin-top: 10px;
+}
+
+.where {
+  margin: 10px 0;
+}
+
+.when {
+  max-width: 200px;
+}
+
+.when:hover {
+  cursor: pointer !important;
+}
