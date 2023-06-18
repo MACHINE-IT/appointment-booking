@@ -109,7 +109,7 @@ export default function BookingSession(props) {
         <div id="main">
             {bookingStatus ? (
                 <div>
-                    <h2>Appointment booked successfully</h2>
+                    <h2>Appointment booked successfully!</h2>
                     <button onClick={cancelAppointmentHandler}>Cancel appointment</button>
                 </div>
             ) : (
