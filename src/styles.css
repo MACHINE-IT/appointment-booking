@@ -7,6 +7,22 @@
   max-width: 200px;
 }
 
+.dropdown {
+  max-width: 200px;
+  ;
+}
+
+.datepicker-wrapper {
+  position: relative;
+}
+
+.calendar-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+}
+
 button {
   margin: 10px 0;
 }

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
+import moment from 'moment';
+import { parseISO, format } from 'date-fns';
 import "./styles.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -13,35 +15,65 @@ export default function BookingSession(props) {
     // could come from props, but since we don’t want to prefill this form,
     // we just use an empty string. If we don’t do this, React will yell
     // at us.
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [doctorName, setDoctorName] = useState("");
-    const [selectedDate, setSelectedDate] = useState(null);
+    // const [firstName, setFirstName] = useState("");
+    // const [lastName, setLastName] = useState("");
+    // const [email, setEmail] = useState("");
+    // const [doctorName, setDoctorName] = useState("");
+    // const [selectedDate, setSelectedDate] = useState(null);
+    /* commenting the initial states because formik is handeling the state internally*/
 
-    const whereDropdownValueHandler = (e) => {
-        const selectedValue = e.target.value;
-        setDoctorName(selectedValue === "Select Doctor" ? "" : selectedValue);
-    };
-
-    useEffect(() => {
-        const isDoctorSelected = Boolean(doctorName);
-        const doctorSelectedDiv = document.getElementById("doctorSelected");
-        if (doctorSelectedDiv) {
-            doctorSelectedDiv.style.display = isDoctorSelected ? "block" : "none";
-        }
-    }, [doctorName]);
 
     const formik = useFormik({
         initialValues: {
             firstName: "",
             lastName: "",
-            email: ""
+            email: "",
+            doctorName: '',
+            meetingMethod: '',
+            selectedDate: '',
+            selectedDateTime: null
         },
         onSubmit: (values) => {
             alert(JSON.stringify(values, null, 2));
         }
     });
+
+    // const selectedDateTimeHandler = (selectedDateTime) => {
+    //     console.log("passed datetime is = " + selectedDateTime)
+    //     // if (selectedDateTime) {
+    //     //     const parsedDate = parse(selectedDateTime, 'dd/MM/yyyy HH:mm', new Date());
+    //     //     if (isValid(parsedDate)) {
+    //     //         const formattedDate = format(parsedDate, 'dd/MM/yyyy, HH:mm');
+    //     //         formik.setFieldValue('selectedDateTime', formattedDate);
+    //     //     } else {
+    //     //         formik.setFieldValue('selectedDateTime', null);
+    //     //         console.error('Invalid date');
+    //     //     }
+    //     // } else {
+    //     //     formik.setFieldValue('selectedDateTime', null);
+    //     // }
+    // }
+
+
+    const selectedDateTimeHandler = (date) => {
+        formik.setFieldValue('selectedDateTime', date);
+    };
+
+    const doctorChangeHandler = (e) => {
+        const selectedValue = e.target.value;
+        //setDoctorName(selectedValue === "Select Doctor" ? "" : selectedValue);
+        formik.setFieldValue("doctorName", selectedValue === "Select Doctor" ? '' : selectedValue);
+    };
+
+    useEffect(() => {
+        const isDoctorSelected = Boolean(formik.values.doctorName);
+        const doctorSelectedDiv = document.getElementById("doctorSelected");
+        if (doctorSelectedDiv) {
+            doctorSelectedDiv.style.display = isDoctorSelected ? "block" : "none";
+        }
+    }, [formik.values.doctorName]);
+
+
     return (
         <form onSubmit={formik.handleSubmit}>
             <div className="input-field">
@@ -85,11 +117,12 @@ export default function BookingSession(props) {
             </div>
             <br />
             <h4>Doctor</h4>
-            <div class="dropdown">
+            <div className="dropdown">
                 <select
                     className="form-select"
                     aria-label="Doctor Select"
-                    onChange={whereDropdownValueHandler}
+                    onChange={doctorChangeHandler}
+                    value={formik.values.doctorName}
                 >
                     <option>Select Doctor</option>
                     <option value="Dr. Hopkins">Dr. Hopkins</option>
@@ -104,10 +137,12 @@ export default function BookingSession(props) {
                         <input
                             class="form-check-input"
                             type="radio"
-                            name="gMeet"
+                            name="meetingMethod"
                             id="google-meet"
+                            onChange={formik.handleChange}
+                            value="google Meet"
                         />
-                        <label class="form-check-label" forHtml="gMeet">
+                        <label class="form-check-label" htmlFor="google-meet">
                             Google Meet
                         </label>
                     </div>
@@ -115,11 +150,12 @@ export default function BookingSession(props) {
                         <input
                             class="form-check-input"
                             type="radio"
-                            name="phone"
+                            name="meetingMethod"
                             id="phone"
-                            checked
+                            onChange={formik.handleChange}
+                            value="phone"
                         />
-                        <label class="form-check-label" forHtml="phone">
+                        <label class="form-check-label" htmlFor="phone">
                             Phone
                         </label>
                     </div>
@@ -131,21 +167,16 @@ export default function BookingSession(props) {
                     <div style={{ position: "relative" }}>
                         <DatePicker
                             id="date"
-                            selected={selectedDate}
-                            onChange={(date) => setSelectedDate(date)}
+                            selected={formik.values.selectedDateTime}
+                            onChange={selectedDateTimeHandler}
+                            value={formik.values.selectedDateTime}
                             dateFormat="dd/MM/yyyy, HH:mm"
                             showTimeInput
                             className="form-control"
                         />
                         <FaCalendarAlt
                             size={20}
-                            style={{
-                                position: "absolute",
-                                top: "50%",
-                                left: "10px",
-                                transform: "translateY(-50%)",
-                                pointerEvents: "none"
-                            }}
+                            className="calendar-icon"
                         />
                     </div>
                 </div>
@@ -156,3 +187,4 @@ export default function BookingSession(props) {
         </form>
     );
 }
+
