@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
-import moment from 'moment';
-import { parseISO, format } from 'date-fns';
+import axios from "axios";
+import moment from "moment";
+import { parseISO, format } from "date-fns";
 import "./styles.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -22,20 +23,44 @@ export default function BookingSession(props) {
     // const [selectedDate, setSelectedDate] = useState(null);
     /* commenting the initial states because formik is handeling the state internally*/
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [appointmentScheduling, setAppointmentScheduling] = useState(false);
+    const [bookingStatus, setBookingStatus] = useState(false);
+
+    useEffect(() => {
+        const fillFormDiv = document.getElementById("fill-the-form");
+        if (fillFormDiv) {
+            fillFormDiv.style.display = isLoading ? "none" : "block";
+        }
+
+    }, [isLoading]);
 
     const formik = useFormik({
         initialValues: {
             firstName: "",
             lastName: "",
             email: "",
-            doctorName: '',
-            meetingMethod: '',
-            selectedDate: '',
-            selectedDateTime: null
+            doctorName: "",
+            meetingMethod: "",
+            selectedDate: "",
+            selectedDateTime: null,
         },
         onSubmit: (values) => {
-            alert(JSON.stringify(values, null, 2));
-        }
+            setIsLoading(true);
+            setAppointmentScheduling(true);
+            axios
+                .post("https://jsonplaceholder.typicode.com/posts", values)
+                .then((response) => {
+                    // alert(JSON.stringify(values, null, 2));
+                    setIsLoading(false);
+                    setAppointmentScheduling(false);
+                    setBookingStatus(true)
+                })
+                .catch((e) => {
+                    throw new Error(e);
+                    setIsLoading(false);
+                });
+        },
     });
 
     // const selectedDateTimeHandler = (selectedDateTime) => {
@@ -54,16 +79,23 @@ export default function BookingSession(props) {
     //     // }
     // }
 
-
     const selectedDateTimeHandler = (date) => {
-        formik.setFieldValue('selectedDateTime', date);
+        formik.setFieldValue("selectedDateTime", date);
     };
 
     const doctorChangeHandler = (e) => {
         const selectedValue = e.target.value;
         //setDoctorName(selectedValue === "Select Doctor" ? "" : selectedValue);
-        formik.setFieldValue("doctorName", selectedValue === "Select Doctor" ? '' : selectedValue);
+        formik.setFieldValue(
+            "doctorName",
+            selectedValue === "Select Doctor" ? "" : selectedValue
+        );
     };
+
+    const cancelAppointmentHandler = () => {
+        setBookingStatus(false);
+        window.location.reload();
+    }
 
     useEffect(() => {
         const isDoctorSelected = Boolean(formik.values.doctorName);
@@ -73,118 +105,133 @@ export default function BookingSession(props) {
         }
     }, [formik.values.doctorName]);
 
-
     return (
-        <form onSubmit={formik.handleSubmit}>
-            <div className="input-field">
-                <label htmlFor="firstName" className="form-label">
-                    First Name
-                </label>
-                <input
-                    id="firstName"
-                    className="form-control"
-                    name="firstName"
-                    type="text"
-                    onChange={formik.handleChange}
-                    value={formik.values.firstName}
-                />
-            </div>
-            <div className="input-field">
-                <label htmlFor="lastName" className="form-label">
-                    Last Name
-                </label>
-                <input
-                    id="lastName"
-                    className="form-control"
-                    name="lastName"
-                    type="text"
-                    onChange={formik.handleChange}
-                    value={formik.values.lastName}
-                />
-            </div>
-            <div className="input-field">
-                <label htmlFor="email" className="form-label">
-                    Email Address
-                </label>
-                <input
-                    id="email"
-                    className="form-control"
-                    name="email"
-                    type="email"
-                    onChange={formik.handleChange}
-                    value={formik.values.email}
-                />
-            </div>
-            <br />
-            <h4>Doctor</h4>
-            <div className="dropdown">
-                <select
-                    className="form-select"
-                    aria-label="Doctor Select"
-                    onChange={doctorChangeHandler}
-                    value={formik.values.doctorName}
-                >
-                    <option>Select Doctor</option>
-                    <option value="Dr. Hopkins">Dr. Hopkins</option>
-                    <option value="Dr. Lara">Dr. Lara</option>
-                    <option value="Dr. Singh">Dr. Singh</option>
-                </select>
-            </div>
-            <div id="doctorSelected">
-                <div className="where">
-                    <h4>Where?</h4>
-                    <div class="form-check">
-                        <input
-                            class="form-check-input"
-                            type="radio"
-                            name="meetingMethod"
-                            id="google-meet"
-                            onChange={formik.handleChange}
-                            value="google Meet"
-                        />
-                        <label class="form-check-label" htmlFor="google-meet">
-                            Google Meet
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input
-                            class="form-check-input"
-                            type="radio"
-                            name="meetingMethod"
-                            id="phone"
-                            onChange={formik.handleChange}
-                            value="phone"
-                        />
-                        <label class="form-check-label" htmlFor="phone">
-                            Phone
-                        </label>
-                    </div>
+        <div id="main">
+            {bookingStatus ? (
+                <div>
+                    <h2>Appointment booked successfully</h2>
+                    <button onClick={cancelAppointmentHandler}>Cancel appointment</button>
                 </div>
-                <div className="when">
-                    <label htmlFor="date" className="form-label">
-                        Date and Time
-                    </label>
-                    <div style={{ position: "relative" }}>
-                        <DatePicker
-                            id="date"
-                            selected={formik.values.selectedDateTime}
-                            onChange={selectedDateTimeHandler}
-                            value={formik.values.selectedDateTime}
-                            dateFormat="dd/MM/yyyy, HH:mm"
-                            showTimeInput
-                            className="form-control"
-                        />
-                        <FaCalendarAlt
-                            size={20}
-                            className="calendar-icon"
-                        />
-                    </div>
+            ) : (
+                <div>
+                    <h1>Book a session</h1>
+                    <p>Fill in the form below to book a virtual session with your doctor</p>
+                    {appointmentScheduling ? (
+                        <h2>Please wait, scheduling your appointment..</h2>
+                    ) : (
+                        <div id="fill-the-form">
+                            <h4>Basic Info</h4>
+                            <form onSubmit={formik.handleSubmit}>
+                                <div className="input-field">
+                                    <label htmlFor="firstName" className="form-label">
+                                        First Name
+                                    </label>
+                                    <input
+                                        id="firstName"
+                                        className="form-control"
+                                        name="firstName"
+                                        type="text"
+                                        onChange={formik.handleChange}
+                                        value={formik.values.firstName}
+                                    />
+                                </div>
+                                <div className="input-field">
+                                    <label htmlFor="lastName" className="form-label">
+                                        Last Name
+                                    </label>
+                                    <input
+                                        id="lastName"
+                                        className="form-control"
+                                        name="lastName"
+                                        type="text"
+                                        onChange={formik.handleChange}
+                                        value={formik.values.lastName}
+                                    />
+                                </div>
+                                <div className="input-field">
+                                    <label htmlFor="email" className="form-label">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        id="email"
+                                        className="form-control"
+                                        name="email"
+                                        type="email"
+                                        onChange={formik.handleChange}
+                                        value={formik.values.email}
+                                    />
+                                </div>
+                                <br />
+                                <h4>Doctor</h4>
+                                <div className="dropdown">
+                                    <select
+                                        className="form-select"
+                                        aria-label="Doctor Select"
+                                        onChange={doctorChangeHandler}
+                                        value={formik.values.doctorName}
+                                    >
+                                        <option>Select Doctor</option>
+                                        <option value="Dr. Hopkins">Dr. Hopkins</option>
+                                        <option value="Dr. Lara">Dr. Lara</option>
+                                        <option value="Dr. Singh">Dr. Singh</option>
+                                    </select>
+                                </div>
+                                <div id="doctorSelected">
+                                    <div className="where">
+                                        <h4>Where?</h4>
+                                        <div class="form-check">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="meetingMethod"
+                                                id="google-meet"
+                                                onChange={formik.handleChange}
+                                                value="google Meet"
+                                            />
+                                            <label class="form-check-label" htmlFor="google-meet">
+                                                Google Meet
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="meetingMethod"
+                                                id="phone"
+                                                onChange={formik.handleChange}
+                                                value="phone"
+                                            />
+                                            <label class="form-check-label" htmlFor="phone">
+                                                Phone
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div className="when">
+                                        <label htmlFor="date" className="form-label">
+                                            Date and Time
+                                        </label>
+                                        <div style={{ position: "relative" }}>
+                                            <DatePicker
+                                                id="date"
+                                                selected={formik.values.selectedDateTime}
+                                                onChange={selectedDateTimeHandler}
+                                                value={formik.values.selectedDateTime}
+                                                dateFormat="dd/MM/yyyy, HH:mm"
+                                                showTimeInput
+                                                className="form-control"
+                                            />
+                                            <FaCalendarAlt size={20} className="calendar-icon" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" className="confirm-booking-button">
+                                    Confirm Booking
+                                </button>
+                            </form>
+                        </div>
+                    )}
                 </div>
-            </div>
-            <button type="submit" className="confirm-booking-button">
-                Confirm Booking
-            </button>
-        </form>
+            )}
+        </div>
     );
 }
-
