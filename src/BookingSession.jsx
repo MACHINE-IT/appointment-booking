@@ -117,7 +117,7 @@ export default function BookingSession(props) {
                     <h1>Book a session</h1>
                     <p>Fill in the form below to book a virtual session with your doctor</p>
                     {appointmentScheduling ? (
-                        <h2>Scheduling your appointment.....</h2>
+                        <h2>Scheduling your appointment...</h2>
                     ) : (
                         <div id="fill-the-form">
                             <h4>Basic Info</h4>
